@@ -1,5 +1,7 @@
 module Enumerable
     def my_each
+      return to_enum unless block_given?
+
         for item in self
             yield(item)
         end
@@ -7,6 +9,8 @@ module Enumerable
     end
    
     def my_each_with_index
+      return to_enum unless block_given?
+      
         i = 0
         while i < self.length
          yield(self[i], i)
@@ -16,6 +20,8 @@ module Enumerable
     end
 
     def my_select
+      return to_enum unless block_given?
+
         new_array = []
         self.my_each do |item|
           new_array.push(item) if yield(item)
@@ -24,6 +30,8 @@ module Enumerable
     end
 
     def my_all?
+      return to_enum unless block_given?
+
         test = true
         self.my_each do |item|
           test = false if !yield(item)
@@ -33,6 +41,8 @@ module Enumerable
     end
     
     def my_any?
+      return to_enum unless block_given?
+
         test = false
         self.my_each do |item|
           test = true if yield(item)
@@ -42,6 +52,8 @@ module Enumerable
     end
     
     def my_none?
+      return to_enum unless block_given?
+      
         test = true
         self.my_each do |item|
           test = false if yield(item)

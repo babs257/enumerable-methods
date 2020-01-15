@@ -1,11 +1,15 @@
 module Enumerable
     def my_each
+       
       return to_enum unless block_given?
 
-        for item in self
-            yield(item)
-        end
-        self
+      i = 0
+
+      while i < length
+        yield([i])
+        i += 1
+      end
+             
     end
    
     def my_each_with_index
@@ -53,7 +57,7 @@ module Enumerable
     
     def my_none?
       return to_enum unless block_given?
-      
+
         test = true
         self.my_each do |item|
           test = false if yield(item)
@@ -63,6 +67,8 @@ module Enumerable
     end
     
     def my_count
+      return to_enum unless block_given?
+
         total = 0
         if block_given?
           self.my_each {|item| total += 1 if yield(item)}
@@ -73,6 +79,8 @@ module Enumerable
     end
     
     def my_map(&my_proc)
+      return to_enum unless block_given?
+
         new_array = []
         self.my_each do |value|
           if my_proc.nil?
@@ -85,6 +93,8 @@ module Enumerable
     end
     
     def my_inject(memo=self[0])
+      return to_enum unless block_given?
+      
         self.my_each_with_index do |value, index|
           memo = yield(memo, value) if index > 0
         end
@@ -95,3 +105,7 @@ module Enumerable
     def multiply_els(array)
       array.my_inject{|total, n| total*n}
     end
+
+    a = [1,2,3,4]
+    a.each{ |elem| puts elem * 2}
+    #a.my_each{ |elem| puts elem * 2}

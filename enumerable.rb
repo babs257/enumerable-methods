@@ -106,6 +106,4 @@ module Enumerable
       array.my_inject{|total, n| total*n}
     end
 
-    a = [1,2,3,4]
-    a.each{ |elem| puts elem * 2}
-    #a.my_each{ |elem| puts elem * 2}
+   

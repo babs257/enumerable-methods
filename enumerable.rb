@@ -3,107 +3,116 @@ module Enumerable
        
       return to_enum unless block_given?
 
-      i = 0
+      arr = to_a
 
-      while i < length
-        yield([i])
+      i = 0
+      while i < size
+        yield(arr[i])
         i += 1
       end
-             
     end
-   
+  
     def my_each_with_index
       return to_enum unless block_given?
       
-        i = 0
-        while i < self.length
-         yield(self[i], i)
+      arr = to_a
+
+      i = 0
+      while i < size
+        yield(arr[i], i)
         i += 1
-    end
-    self
+      end
     end
 
     def my_select
       return to_enum unless block_given?
 
         new_array = []
-        self.my_each do |item|
+        my_each do |item|
           new_array.push(item) if yield(item)
         end
         new_array
     end
 
-    def my_all?
-      return to_enum unless block_given?
-
-        test = true
-        self.my_each do |item|
-          test = false if !yield(item)
-          break
-        end
-        return test
-    end
-    
-    def my_any?
-      return to_enum unless block_given?
-
-        test = false
-        self.my_each do |item|
-          test = true if yield(item)
-          break
-        end
-        return test
-    end
-    
-    def my_none?
-      return to_enum unless block_given?
-
-        test = true
-        self.my_each do |item|
-          test = false if yield(item)
-          break
-        end
-        return test
-    end
-    
-    def my_count
-      return to_enum unless block_given?
-
-        total = 0
-        if block_given?
-          self.my_each {|item| total += 1 if yield(item)}
-        else
-          total = self.count
-        end
-        return total
-    end
-    
-    def my_map(&my_proc)
-      return to_enum unless block_given?
-
-        new_array = []
-        self.my_each do |value|
-          if my_proc.nil?
-            new_array.push(my_proc.call(value))
-          else
-            new_array.push(yield(value))
-          end
-        end
-        return new_array
-    end
-    
-    def my_inject(memo=self[0])
-      return to_enum unless block_given?
-      
-        self.my_each_with_index do |value, index|
-          memo = yield(memo, value) if index > 0
-        end
-        return memo
+    def my_all?(arg = nil)
+      if block_given?
+        my_each { |elem| return false unless yield(elem) }
+      elsif arg.class == Class
+        my_each { |elem| return false unless elem.class.ancestors.include? arg }
+      elsif arg.class == Regexp
+        my_each { |elem| return false unless elem =~ arg }
+      elsif arg.nil?
+        my_each { |elem| return false unless elem }
+      else
+        my_each { |elem| return false unless elem == arg }
       end
+      true
     end
     
-    def multiply_els(array)
-      array.my_inject{|total, n| total*n}
+    def my_any?(arg = nil)
+      if block_given?
+        my_each { |elem| return true if yield(elem) }
+      elsif arg.class == Class
+        my_each { |elem| return true if elem.class.ancestors.include? arg }
+      elsif arg.class == Regexp
+        my_each { |elem| return true if elem =~ arg }
+      elsif arg.nil?
+        my_each { |elem| return true if elem }
+      else
+        my_each { |elem| return true if elem == arg }
+      end
+      false
     end
+    
+    def my_none?(arg = nil, &block)
+      !my_any?(arg, &block)
+    end
+    
+    def my_count(arg = nil)
+      counter = 0
+      if block_given?
+        my_each { |elem| counter += 1 if yield(elem) }
+      elsif arg.nil?
+        my_each { |_elem| counter += 1 }
+      else
+        my_each { |elem| counter += 1 if elem == arg }
+      end
+      counter
+    end
+    
+    def my_map(&block)
+      return to_enum unless block_given?
 
-   
+    result = []
+    my_each do |elem|
+      result << block.call(elem)
+    end
+    result
+    end
+    
+    def my_inject(arg = nil, arg2 = nil)
+      output = is_a?(Range) ? min : self[0]
+      if block_given?
+        my_each_with_index { |elem, index| output = yield(output, elem) if index.positive? }
+        output = yield(output, arg) if arg
+      elsif arg.is_a?(Symbol) || arg.is_a?(String)
+        my_each_with_index { |elem, index| output = output.send(arg, elem) if index.positive? }
+      elsif arg2.is_a?(Symbol) || arg2.is_a?(String)
+        my_each_with_index { |elem, index| output = output.send(arg2, elem) if index.positive? }
+        output = output.send(arg2, arg)
+      elsif arg
+        return "my_inject: #{arg} is not a symbol nor a string"
+      else
+        return 'my_inject: no block given'
+      end
+      output
+    end
+  end
+    
+  
+  puts %w[ant bear cat].my_all? { |word| word.length >= 3 }
+  puts %w[ant bear cat].my_all? { |word| word.length >= 4 }
+  puts %w[ant bear cat].my_all?(/t/)
+  puts [1, 2i, 3.14].my_all?(Numeric)  
+  puts [nil, true, 99].my_all?
+  puts [].my_all? 
